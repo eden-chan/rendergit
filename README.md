@@ -6,17 +6,19 @@ Tired of clicking around complex file hierarchies of GitHub repos? Do you just w
 
 ## Basic usage
 
-Git clone / pip install this repo somewhere:
+Install and use easily with [uv](https://docs.astral.sh/uv/):
+
+```bash
+uv tool install git+https://github.com/karpathy/rendergit
+rendergit https://github.com/karpathy/nanogpt
+```
+
+Alternatively, more manual pip install example:
 
 ```bash
 git clone https://github.com/karpathy/rendergit
 cd rendergit
 pip install -e .
-```
-
-Now you can just `rendergit` any GitHub url e.g.:
-
-```bash
 rendergit https://github.com/karpathy/nanoGPT
 ```
 
@@ -30,15 +32,6 @@ Once open, you can toggle between two views:
 - **🤖 LLM View**: Copy the entire codebase as CXML text to paste into Claude, ChatGPT, etc.
 
 There's a few other smaller options, see the code.
-
-## uv usage
-
-Install and use easily with [uv](https://docs.astral.sh/uv/):
-
-```bash
-uv tool install git+https://github.com/karpathy/rendergit
-rendergit https://github.com/karpathy/nanogpt
-```
 
 ## Features
 
