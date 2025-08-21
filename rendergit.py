@@ -1,26 +1,6 @@
 #!/usr/bin/env python3
 """
 Flatten a GitHub repo into a single static HTML page for fast skimming and Ctrl+F.
-
-Features
-- Clones a repo URL to a temp dir
-- Renders every small text file into one giant HTML page
-  * Markdown files are rendered as HTML
-  * Code files are syntax-highlighted via Pygments
-  * Plaintext gets <pre><code>
-- Skips binaries and files over a size threshold (default: 50 KiB)
-- Lists skipped binaries / large files at the top
-- Includes repo metadata, counts, and a directory tree header
-
-Usage
-    python repo_to_single_page.py https://github.com/user/repo -o out.html
-
-Requirements
-    pip install pygments markdown
-
-Notes
-- Requires a working `git` in PATH.
-- If the `tree` command is unavailable, a Python fallback is used.
 """
 
 from __future__ import annotations
@@ -34,18 +14,13 @@ import sys
 import tempfile
 import webbrowser
 from dataclasses import dataclass
-from typing import List, Tuple
+from typing import List
 
 # External deps
 from pygments import highlight
 from pygments.formatters import HtmlFormatter
 from pygments.lexers import get_lexer_for_filename, TextLexer
-
-try:
-    import markdown  # Python-Markdown
-except ImportError as e:
-    print("Missing dependency: markdown. Install with `pip install markdown`.", file=sys.stderr)
-    raise
+import markdown
 
 MAX_DEFAULT_BYTES = 50 * 1024
 BINARY_EXTENSIONS = {
@@ -205,22 +180,22 @@ def slugify(path_str: str) -> str:
 def generate_cxml_text(infos: List[FileInfo], repo_dir: pathlib.Path) -> str:
     """Generate CXML format text for LLM consumption."""
     lines = ["<documents>"]
-    
+
     rendered = [i for i in infos if i.decision.include]
     for index, i in enumerate(rendered, 1):
         lines.append(f'<document index="{index}">')
         lines.append(f"<source>{i.rel}</source>")
         lines.append("<document_content>")
-        
+
         try:
             text = read_text(i.path)
             lines.append(text)
         except Exception as e:
             lines.append(f"Failed to read: {str(e)}")
-            
+
         lines.append("</document_content>")
         lines.append("</document>")
-    
+
     lines.append("</documents>")
     return "\n".join(lines)
 
@@ -238,7 +213,7 @@ def build_html(repo_url: str, repo_dir: pathlib.Path, head_commit: str, infos: L
 
     # Directory tree
     tree_text = try_tree_command(repo_dir)
-    
+
     # Generate CXML text for LLM view
     cxml_text = generate_cxml_text(infos, repo_dir)
 
@@ -346,34 +321,34 @@ def build_html(repo_url: str, repo_dir: pathlib.Path, head_commit: str, infos: L
   :target {{ scroll-margin-top: 8px; }}
 
   /* View toggle */
-  .view-toggle {{ 
-    margin: 1rem 0; 
-    display: flex; 
-    gap: 0.5rem; 
-    align-items: center; 
+  .view-toggle {{
+    margin: 1rem 0;
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
   }}
-  .toggle-btn {{ 
-    padding: 0.5rem 1rem; 
-    border: 1px solid #d1d9e0; 
-    background: white; 
-    cursor: pointer; 
+  .toggle-btn {{
+    padding: 0.5rem 1rem;
+    border: 1px solid #d1d9e0;
+    background: white;
+    cursor: pointer;
     border-radius: 6px;
     font-size: 0.9rem;
   }}
-  .toggle-btn.active {{ 
-    background: #0366d6; 
-    color: white; 
-    border-color: #0366d6; 
+  .toggle-btn.active {{
+    background: #0366d6;
+    color: white;
+    border-color: #0366d6;
   }}
-  .toggle-btn:hover:not(.active) {{ 
-    background: #f6f8fa; 
+  .toggle-btn:hover:not(.active) {{
+    background: #f6f8fa;
   }}
-  
+
   /* LLM view */
   #llm-view {{ display: none; }}
-  #llm-text {{ 
-    width: 100%; 
-    height: 70vh; 
+  #llm-text {{
+    width: 100%;
+    height: 70vh;
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     font-size: 0.85em;
     border: 1px solid #d1d9e0;
@@ -381,10 +356,10 @@ def build_html(repo_url: str, repo_dir: pathlib.Path, head_commit: str, infos: L
     padding: 1rem;
     resize: vertical;
   }}
-  .copy-hint {{ 
-    margin-top: 0.5rem; 
-    color: #666; 
-    font-size: 0.9em; 
+  .copy-hint {{
+    margin-top: 0.5rem;
+    color: #666;
+    font-size: 0.9em;
   }}
 
   /* Pygments */
@@ -466,7 +441,7 @@ function showLLMView() {{
   document.getElementById('llm-view').style.display = 'block';
   document.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.remove('active'));
   event.target.classList.add('active');
-  
+
   // Auto-select all text when switching to LLM view for easy copying
   setTimeout(() => {{
     const textArea = document.getElementById('llm-text');
@@ -491,7 +466,7 @@ def derive_temp_output_path(repo_url: str) -> pathlib.Path:
         filename = f"{repo_name}.html"
     else:
         filename = "repo.html"
-    
+
     return pathlib.Path(tempfile.gettempdir()) / filename
 
 
@@ -502,7 +477,7 @@ def main() -> int:
     ap.add_argument("--max-bytes", type=int, default=MAX_DEFAULT_BYTES, help="Max file size to render (bytes); larger files are listed but skipped")
     ap.add_argument("--no-open", action="store_true", help="Don't open the HTML file in browser after generation")
     args = ap.parse_args()
-    
+
     # Set default output path if not provided
     if args.out is None:
         args.out = str(derive_temp_output_path(args.repo_url))
@@ -521,7 +496,7 @@ def main() -> int:
         rendered_count = sum(1 for i in infos if i.decision.include)
         skipped_count = len(infos) - rendered_count
         print(f"✓ Found {len(infos)} files total ({rendered_count} will be rendered, {skipped_count} skipped)", file=sys.stderr)
-        
+
         print(f"🔨 Generating HTML...", file=sys.stderr)
         html_out = build_html(args.repo_url, repo_dir, head, infos)
 
@@ -530,11 +505,11 @@ def main() -> int:
         out_path.write_text(html_out, encoding="utf-8")
         file_size = out_path.stat().st_size
         print(f"✓ Wrote {bytes_human(file_size)} to {out_path}", file=sys.stderr)
-        
+
         if not args.no_open:
             print(f"🌐 Opening {out_path} in browser...", file=sys.stderr)
             webbrowser.open(f"file://{out_path.resolve()}")
-        
+
         print(f"🗑️  Cleaning up temporary directory: {tmpdir}", file=sys.stderr)
         return 0
     finally:
@@ -542,4 +517,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    main()

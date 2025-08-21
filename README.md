@@ -2,7 +2,7 @@
 
 > Just show me the code.
 
-Tired of clicking around complex file hierarchies of GitHub repos? Do you just want to see all of the code on a single page? Enter `rendergit`. Flatten any GitHub repository into a single, searchable HTML page with syntax highlighting, markdown rendering, and a clean sidebar navigation. Perfect for code review, exploration, and an instant Ctrl+F experience.
+Tired of clicking around complex file hierarchies of GitHub repos? Do you just want to see all of the code on a single page? Enter `rendergit`. Flatten any GitHub repository into a single, static HTML page with syntax highlighting, markdown rendering, and a clean sidebar navigation. Perfect for code review, exploration, and an instant Ctrl+F experience.
 
 ## Basic usage
 
@@ -30,6 +30,15 @@ Once open, you can toggle between two views:
 - **🤖 LLM View**: Copy the entire codebase as CXML text to paste into Claude, ChatGPT, etc.
 
 There's a few other smaller options, see the code.
+
+## uv usage
+
+Install and use easily with [uv](https://docs.astral.sh/uv/):
+
+```bash
+uv tool install git+https://github.com/karpathy/rendergit
+rendergit https://github.com/karpathy/nanogpt
+```
 
 ## Features
 
